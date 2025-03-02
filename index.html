@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Haustier Manager</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      background-color: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    h1, h2, h3 {
+      margin-bottom: 16px;
+    }
+    .button {
+      padding: 8px 16px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .button:hover {
+      background-color: #2563eb;
+    }
+    .button-delete {
+      background-color: #ef4444;
+    }
+    .button-delete:hover {
+      background-color: #dc2626;
+    }
+    .button-secondary {
+      background-color: #6b7280;
+    }
+    .button-secondary:hover {
+      background-color: #4b5563;
+    }
+    .button-green {
+      background-color: #10b981;
+    }
+    .button-green:hover {
+      background-color: #059669;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .card-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .notification {
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+    .notification-warning {
+      background-color: #fef3c7;
+      border: 1px solid #f59e0b;
+    }
+    .notification-info {
+      background-color: #dbeafe;
+      border: 1px solid #3b82f6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active {
+      border-bottom: 2px solid #3b82f6;
+      color: #3b82f6;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .pet-item {
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .pet-item-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+    }
+    .item-appointment {
+      background-color: #dbeafe;
+    }
+    .item-vaccination {
+      background-color: #d1fae5;
+    }
+    .item-cost {
+      background-color: #fee2e2;
+    }
+    /* Diagramm-Stile */
+    .charts-container {
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    .chart-wrapper {
+      border: 1px solid #e5e7eb;
+      padding: 15px;
+      border-radius: 8px;
+      background-color: #fff;
+    }
+    .chart-wrapper h4 {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .year-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .chart {
+      height: 250px;
+      overflow-x: auto;
+    }
+    .chart-bars {
+      display: flex;
+      height: 200px;
+      gap: 10px;
+      align-items: flex-end;
+      margin-top: 10px;
+    }
+    .chart-bar {
+      background-color: #3b82f6;
+      flex: 1;
+      min-width: 30px;
+      border-radius: 4px 4px 0 0;
+      position: relative;
+      transition: height 0.3s;
+    }
+    .chart-bar.yearly {
+      background-color: #10b981;
+    }
+    .chart-bar-label {
+      position: absolute;
+      bottom: -25px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 12px;
+    }
+    .chart-bar-value {
+      position: absolute;
+      top: -25px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 12px;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background-color: white;
+      padding: 24px;
+      border-radius: 8px;
+      width: 100%;
+      max-width: 500px;
+    }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    .back-button {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .completed {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+    .list {
+      list-style: none;
+    }
+    .list-item {
+      margin-bottom: 10px;
+    }
+    .actions-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+    .export-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .file-input {
+      display: none;
+    }
+    .alert {
+      padding: 12px;
+      margin-bottom: 16px;
+      border-radius: 4px;
+      background-color: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #f87171;
+    }
+    .success {
+      background-color: #ecfdf5;
+      color: #047857;
+      border: 1px solid #10b981;
+    }
+    #message-box {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px;
+      border-radius: 4px;
+      background-color: #d1fae5;
+      border: 1px solid #10b981;
+      color: #065f46;
+      z-index: 2000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: opacity 0.3s ease;
+      opacity: 0;
+    }
+    #message-box.show {
+      opacity: 1;
+    }
+    .storage-info {
+      font-size: 12px;
+      color: #6b7280;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background-color: #f3f4f6;
+    }
+    .storage-warning {
+      color: #b45309;
+      background-color: #fef3c7;
+    }
+    #copyright-notice {
+      text-align: center;
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 14px;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+    <!-- JSZip für CSV-Ordnerexport -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  </head>
+<body>
+  <div class="container">
+    <!-- Copyright-Hinweis -->
+    <div id="copyright-notice">
+      Erstellt von Thomas Karner TK-WES &copy; 2025
+    </div>
+    
+    <!-- Überblick -->
+    <div id="overview-view">
+      <div class="header">
+        <h1>Meine Haustiere</h1>
+        <button class="button" id="add-pet-button">
+          + Neues Haustier
+        </button>
+      </div>
+      
+      <div class="actions-bar">
+        <div class="export-buttons">
+          <button class="button button-green" id="export-csv-button">
+            CSV exportieren
+          </button>
+          <button class="button button-green" id="export-json-button">
+            Backup erstellen
+          </button>
+          <button class="button button-secondary" id="import-button">
+            Backup importieren
+          </button>
+          <input type="file" id="import-file" class="file-input" accept=".json">
+        </div>
+        <div class="storage-info" id="storage-info"></div>
+      </div>
+
+      <!-- Benachrichtigungen -->
+      <div id="notifications-area"></div>
+
+      <!-- Haustier Kategorien -->
+      <div id="pets-by-category"></div>
+    </div>
+
+    <!-- Haustier hinzufügen -->
+    <div id="add-pet-view" class="hidden">
+      <div class="header">
+        <h2><span class="back-button">←</span> Neues Haustier hinzufügen</h2>
+      </div>
+      <form id="add-pet-form">
+        <div class="form-group">
+          <label for="pet-name">Name</label>
+          <input type="text" id="pet-name" class="form-control" placeholder="Name deines Haustieres" required>
+        </div>
+        <div class="form-group">
+          <label for="pet-type">Tierart</label>
+          <select id="pet-type" class="form-control">
+            <option value="Hund">Hund</option>
+            <option value="Katze">Katze</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="pet-breed">Rasse</label>
+          <input type="text" id="pet-breed" class="form-control" placeholder="Rasse (optional)">
+        </div>
+        <div class="form-group">
+          <label for="pet-birthdate">Geburtsdatum</label>
+          <input type="date" id="pet-birthdate" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="pet-image">Foto</label>
+          <input type="file" id="pet-image" class="form-control" accept="image/*">
+          <div id="image-preview" class="image-preview"></div>
+        </div>
+        <button type="submit" class="button">Haustier hinzufügen</button>
+      </form>
+    </div>
+
+    <!-- Haustier Details -->
+    <div id="pet-details-view" class="hidden">
+      <div class="header">
+        <h2><span class="back-button">←</span> <span id="pet-detail-name"></span></h2>
+      </div>
+      
+      <!-- Tierbild -->
+      <div id="pet-detail-image" class="pet-image"></div>
+      
+      <div class="tabs">
+        <div class="tab active" data-tab="appointments">Termine</div>
+        <div class="tab" data-tab="vaccinations">Impfungen</div>
+        <div class="tab" data-tab="costs">Kosten</div>
+      </div>
+      
+      <div class="tab-content active" id="appointments-tab">
+        <div class="header">
+          <h3>Termine</h3>
+          <button class="button" id="add-appointment-button">+ Neuer Termin</button>
+        </div>
+        <div id="appointments-list"></div>
+      </div>
+      
+      <div class="tab-content" id="vaccinations-tab">
+        <div class="header">
+          <h3>Impfungen</h3>
+          <button class="button" id="add-vaccination-button">+ Neue Impfung</button>
+        </div>
+        <div id="vaccinations-list"></div>
+      </div>
+      
+      <div class="tab-content" id="costs-tab">
+        <div class="header">
+          <h3>Tierarztkosten</h3>
+          <button class="button" id="add-cost-button">+ Neue Kosten</button>
+        </div>
+        <div id="total-costs"></div>
+        
+        <!-- Kosten-Diagramme -->
+        <div class="charts-container">
+          <div class="chart-wrapper">
+            <h4>Kosten pro Monat <span id="chart-year-label"></span></h4>
+            <div class="year-selector">
+              <button id="prev-year" class="button button-secondary">←</button>
+              <button id="next-year" class="button button-secondary">→</button>
+            </div>
+            <div id="monthly-chart" class="chart"></div>
+          </div>
+          
+          <div class="chart-wrapper">
+            <h4>Kosten pro Jahr</h4>
+            <div id="yearly-chart" class="chart"></div>
+          </div>
+        </div>
+        
+        <div id="costs-list"></div>
+      </div>
+    </div>
+
+    <!-- Termin hinzufügen -->
+    <div id="add-appointment-view" class="hidden">
+      <div class="header">
+        <h2><span class="back-button">←</span> Neuer Termin</h2>
+      </div>
+      <form id="add-appointment-form">
+        <div class="form-group">
+          <label for="appointment-title">Titel</label>
+          <input type="text" id="appointment-title" class="form-control" placeholder="Tierarztbesuch, Kontrolle, etc." required>
+        </div>
+        <div class="form-group">
+          <label for="appointment-date">Datum</label>
+          <input type="date" id="appointment-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="appointment-notes">Notizen</label>
+          <textarea id="appointment-notes" class="form-control" placeholder="Notizen zum Termin"></textarea>
+        </div>
+        <button type="submit" class="button">Termin hinzufügen</button>
+      </form>
+    </div>
+
+    <!-- Impfung hinzufügen -->
+    <div id="add-vaccination-view" class="hidden">
+      <div class="header">
+        <h2><span class="back-button">←</span> Neue Impfung</h2>
+      </div>
+      <form id="add-vaccination-form">
+        <div class="form-group">
+          <label for="vaccination-name">Name der Impfung</label>
+          <input type="text" id="vaccination-name" class="form-control" placeholder="z.B. Tollwut, Parvovirose, etc." required>
+        </div>
+        <div class="form-group">
+          <label for="vaccination-date">Datum</label>
+          <input type="date" id="vaccination-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="vaccination-next-date">Nächste Impfung</label>
+          <input type="date" id="vaccination-next-date" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="vaccination-notes">Notizen</label>
+          <textarea id="vaccination-notes" class="form-control" placeholder="Notizen zur Impfung"></textarea>
+        </div>
+        <button type="submit" class="button">Impfung hinzufügen</button>
+      </form>
+    </div>
+
+    <!-- Kosten hinzufügen -->
+    <div id="add-cost-view" class="hidden">
+      <div class="header">
+        <h2><span class="back-button">←</span> Neue Kosten</h2>
+      </div>
+      <form id="add-cost-form">
+        <div class="form-group">
+          <label for="cost-description">Beschreibung</label>
+          <input type="text" id="cost-description" class="form-control" placeholder="z.B. Untersuchung, Operation, etc." required>
+        </div>
+        <div class="form-group">
+          <label for="cost-date">Datum</label>
+          <input type="date" id="cost-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="cost-amount">Betrag (€)</label>
+          <input type="number" id="cost-amount" step="0.01" class="form-control" placeholder="0.00" required>
+        </div>
+        <div class="form-group">
+          <label for="cost-category">Kategorie</label>
+          <select id="cost-category" class="form-control">
+            <option value="Behandlung">Behandlung</option>
+            <option value="Medikamente">Medikamente</option>
+            <option value="Impfung">Impfung</option>
+            <option value="Sonstiges">Sonstiges</option>
+          </select>
+        </div>
+        <button type="submit" class="button">Kosten hinzufügen</button>
+      </form>
+    </div>
+
+    <!-- Löschbestätigung Modal -->
+    <div id="delete-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Haustier löschen</h3>
+        <p id="delete-confirmation-text"></p>
+        <div class="modal-footer">
+          <button id="cancel-delete" class="button button-secondary">Abbrechen</button>
+          <button id="confirm-delete" class="button button-delete">Löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Benachrichtigung Box -->
+  <div id="message-box"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Datenmodell
+      let pets = [];
+      let activePetId = null;
+      let activeTab = 'appointments';
+      let petToDelete = null;
+
+      // DOM-Elemente
+      const overviewView = document.getElementById('overview-view');
+      const addPetView = document.getElementById('add-pet-view');
+      const petDetailsView = document.getElementById('pet-details-view');
+      const addAppointmentView = document.getElementById('add-appointment-view');
+      const addVaccinationView = document.getElementById('add-vaccination-view');
+      const addCostView = document.getElementById('add-cost-view');
+      
+      // Datenverwaltung
+      function loadPets() {
+        try {
+          const savedPets = localStorage.getItem('pets');
+          if (savedPets) {
+            pets = JSON.parse(savedPets);
+          }
+        } catch (error) {
+          console.error("Fehler beim Laden der Daten:", error);
+          pets = [];
+        }
+      }
+      
+      function savePets() {
+        try {
+          const jsonString = JSON.stringify(pets);
+          localStorage.setItem('pets', jsonString);
+          updateStorageInfo(jsonString.length);
+        } catch (error) {
+          console.error("Fehler beim Speichern der Daten:", error);
+          showMessage("Fehler beim Speichern der Daten", false);
+        }
+      }
+      
+      function updateStorageInfo(currentSize) {
+        const storageInfo = document.getElementById('storage-info');
+        
+        // Größe berechnen
+        const maxSize = 5 * 1024 * 1024; // 5MB localStorage-Limit
+        const usedPercent = (currentSize / maxSize) * 100;
+        const usedMB = (currentSize / (1024 * 1024)).toFixed(2);
+        
+        // Info anzeigen
+        storageInfo.innerHTML = `Speichernutzung: ${usedMB} MB (${usedPercent.toFixed(1)}%)`;
+        
+        // Warnung anzeigen, wenn der Speicher knapp wird
+        if (usedPercent > 80) {
+          storageInfo.classList.add('storage-warning');
+        } else {
+          storageInfo.classList.remove('storage-warning');
+        }
+      }
+      
+      // Navigation
+      function showView(viewName) {
+        // Alle Ansichten ausblenden
+        overviewView.classList.add('hidden');
+        addPetView.classList.add('hidden');
+        petDetailsView.classList.add('hidden');
+        addAppointmentView.classList.add('hidden');
+        addVaccinationView.classList.add('hidden');
+        addCostView.classList.add('hidden');
+        
+        // Gewählte Ansicht einblenden
+        switch(viewName) {
+          case 'overview':
+            overviewView.classList.remove('hidden');
+            renderOverview();
+            break;
+          case 'addPet':
+            addPetView.classList.remove('hidden');
+            break;
+          case 'petDetails':
+            petDetailsView.classList.remove('hidden');
+            showTab(activeTab);
+            break;
+          case 'addAppointment':
+            addAppointmentView.classList.remove('hidden');
+            break;
+          case 'addVaccination':
+            addVaccinationView.classList.remove('hidden');
+            break;
+          case 'addCost':
+            addCostView.classList.remove('hidden');
+            break;
+        }
+      }
+      
+      function showTab(tabName) {
+        activeTab = tabName;
+        
+        // Tabs deaktivieren
+        document.querySelectorAll('.tab').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        
+        // Tab-Inhalte ausblenden
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        
+        // Gewählten Tab aktivieren
+        document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+      }
+      
+      // Benachrichtigungen
+      function showMessage(message, isSuccess = true) {
+        const msgBox = document.getElementById('message-box');
+        msgBox.textContent = message;
+        msgBox.className = isSuccess ? 'success' : 'alert';
+        msgBox.classList.add('show');
+        
+        setTimeout(() => {
+          msgBox.classList.remove('show');
+        }, 3000);
+      }
+      
+      // Hilfsfunktionen
+      function formatDate(dateString) {
+        if (!dateString) return '';
+        
+        try {
+          const date = new Date(dateString);
+          if (isNaN(date.getTime())) return '';
+          
+          return date.toLocaleDateString('de-DE');
+        } catch (error) {
+          console.error("Fehler beim Formatieren des Datums:", error);
+          return '';
+        }
+      }
+      
+      function calculateTotalCosts(pet) {
+        if (!pet || !pet.costs || !Array.isArray(pet.costs)) return 0;
+        
+        return pet.costs.reduce((total, cost) => {
+          return total + (parseFloat(cost.amount) || 0);
+        }, 0).toFixed(2);
+      }
+      
+      // Daten rendern
+      function renderOverview() {
+        renderNotifications();
+        renderPetsByCategory();
+      }
+      
+      function renderNotifications() {
+        const notificationsArea = document.getElementById('notifications-area');
+        notificationsArea.innerHTML = '';
+        
+        // Fällige Impfungen anzeigen
+        const dueVaccinations = getDueVaccinations();
+        if (dueVaccinations.length > 0) {
+          const warningEl = document.createElement('div');
+          warningEl.className = 'notification notification-warning';
+          
+          let warningHtml = '<h3>Fällige Impfungen</h3><ul class="list">';
+          dueVaccinations.forEach(item => {
+            warningHtml += `<li class="list-item">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>${item.petName}: ${item.vaccination.name}</span>
+                <button class="button" onclick="showPetDetails('${item.petId}')">Details</button>
+              </div>
+            </li>`;
+          });
+          warningHtml += '</ul>';
+          
+          warningEl.innerHTML = warningHtml;
+          notificationsArea.appendChild(warningEl);
+        }
+        
+        // Anstehende Termine anzeigen
+        const upcomingAppointments = getUpcomingAppointments();
+        if (upcomingAppointments.length > 0) {
+          const infoEl = document.createElement('div');
+          infoEl.className = 'notification notification-info';
+          
+          let infoHtml = '<h3>Anstehende Termine</h3><ul class="list">';
+          upcomingAppointments.forEach(item => {
+            const daysText = item.daysRemaining === 0 ? 'Heute' : 
+                            item.daysRemaining === 1 ? 'Morgen' : 
+                            `In ${item.daysRemaining} Tagen`;
+            
+            infoHtml += `<li class="list-item">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>${item.petName}: ${item.appointment.title} (${formatDate(item.appointment.date)})</span>
+                <span style="color: #1e40af;">${daysText}</span>
+              </div>
+            </li>`;
+          });
+          infoHtml += '</ul>';
+          
+          infoEl.innerHTML = infoHtml;
+          notificationsArea.appendChild(infoEl);
+        }
+      }
+      
+      function renderPetsByCategory() {
+        const container = document.getElementById('pets-by-category');
+        container.innerHTML = '';
+        
+        ['Hund', 'Katze'].forEach(type => {
+          const categoryEl = document.createElement('div');
+          categoryEl.className = 'pet-category';
+          
+          const filteredPets = pets.filter(pet => pet.type === type);
+          
+          let categoryHtml = `
+            <h2>${type === 'Hund' ? 'Hunde' : 'Katzen'}</h2>
+          `;
+          
+          if (filteredPets.length === 0) {
+            categoryHtml += `<p>Keine ${type === 'Hund' ? 'Hunde' : 'Katzen'} hinzugefügt</p>`;
+          } else {
+            categoryHtml += '<div class="grid">';
+            
+            filteredPets.forEach(pet => {
+              categoryHtml += `
+                <div class="card" onclick="petCardClicked('${pet.id}')">
+                  ${pet.image ? `<div class="pet-card-image"><img src="${pet.image}" alt="${pet.name}"></div>` : ''}
+                  <div class="card-title">
+                    <h3>${pet.name}</h3>
+                    <button class="button button-delete" onclick="deletePetClicked(event, '${pet.id}')">🗑️</button>
+                  </div>
+                  <p>${pet.breed || type}</p>
+                  <p>Termine: ${pet.appointments ? pet.appointments.length : 0}</p>
+                  <p>Impfungen: ${pet.vaccinations ? pet.vaccinations.length : 0}</p>
+                  <p>Kosten: ${calculateTotalCosts(pet)} €</p>
+                </div>
+              `;
+            });
+            
+            categoryHtml += '</div>';
+          }
+          
+          categoryEl.innerHTML = categoryHtml;
+          container.appendChild(categoryEl);
+        });
+      }
+      
+      function renderPetDetails() {
+        const pet = pets.find(p => p.id === activePetId);
+        if (!pet) {
+          showView('overview');
+          return;
+        }
+        
+        document.getElementById('pet-detail-name').textContent = pet.name;
+        
+        // Bild anzeigen, falls vorhanden
+        const imageContainer = document.getElementById('pet-detail-image');
+        if (pet.image) {
+          imageContainer.innerHTML = `<img src="${pet.image}" alt="${pet.name}">`;
+        } else {
+          imageContainer.innerHTML = '<div style="color: #9ca3af; text-align: center;">Kein Bild vorhanden</div>';
+        }
+        
+        renderAppointments(pet);
+        renderVaccinations(pet);
+        renderCosts(pet);
+      }
+      
+      function renderAppointments(pet) {
+        const listEl = document.getElementById('appointments-list');
+        
+        if (!pet.appointments || pet.appointments.length === 0) {
+          listEl.innerHTML = '<p>Keine Termine vorhanden</p>';
+          return;
+        }
+        
+        let html = '<ul class="list">';
+        
+        // Nach Datum sortieren (neueste zuerst)
+        const sortedAppointments = [...pet.appointments].sort((a, b) => {
+          return new Date(b.date) - new Date(a.date);
+        });
+        
+        sortedAppointments.forEach(appointment => {
+          html += `
+            <li class="pet-item item-appointment">
+              <div class="pet-item-title">
+                <div>
+                  <label>
+                    <input type="checkbox" ${appointment.done ? 'checked' : ''} 
+                      onchange="toggleAppointment('${pet.id}', '${appointment.id}')">
+                    <span class="${appointment.done ? 'completed' : ''}">${appointment.title}</span>
+                  </label>
+                  <p>${formatDate(appointment.date)}</p>
+                </div>
+                <button class="button button-delete" onclick="deleteItem('${pet.id}', 'appointments', '${appointment.id}')">🗑️</button>
+              </div>
+              ${appointment.notes ? `<p>${appointment.notes}</p>` : ''}
+            </li>
+          `;
+        });
+        
+        html += '</ul>';
+        listEl.innerHTML = html;
+      }
+      
+      function renderVaccinations(pet) {
+        const listEl = document.getElementById('vaccinations-list');
+        
+        if (!pet.vaccinations || pet.vaccinations.length === 0) {
+          listEl.innerHTML = '<p>Keine Impfungen vorhanden</p>';
+          return;
+        }
+        
+        let html = '<ul class="list">';
+        
+        // Nach Datum sortieren (neueste zuerst)
+        const sortedVaccinations = [...pet.vaccinations].sort((a, b) => {
+          return new Date(b.date) - new Date(a.date);
+        });
+        
+        sortedVaccinations.forEach(vaccination => {
+          html += `
+            <li class="pet-item item-vaccination">
+              <div class="pet-item-title">
+                <div>
+                  <strong>${vaccination.name}</strong>
+                  <p>Datum: ${formatDate(vaccination.date)}</p>
+                  ${vaccination.nextDate ? `<p>Nächste: ${formatDate(vaccination.nextDate)}</p>` : ''}
+                </div>
+                <button class="button button-delete" onclick="deleteItem('${pet.id}', 'vaccinations', '${vaccination.id}')">🗑️</button>
+              </div>
+              ${vaccination.notes ? `<p>${vaccination.notes}</p>` : ''}
+            </li>
+          `;
+        });
+        
+        html += '</ul>';
+        listEl.innerHTML = html;
+      }
+      
+      // Kostendiagramm-Funktionen
+      function groupCostsByMonthAndYear(costs) {
+        if (!costs || !Array.isArray(costs) || costs.length === 0) {
+          return { monthly: {}, yearly: {} };
+        }
+        
+        const monthly = {};
+        const yearly = {};
+        
+        costs.forEach(cost => {
+          if (!cost.date) return;
+          
+          try {
+            const date = new Date(cost.date);
+            if (isNaN(date.getTime())) return;
+            
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const amount = parseFloat(cost.amount) || 0;
+            
+            // Jährliche Summen
+            if (!yearly[year]) yearly[year] = 0;
+            yearly[year] += amount;
+            
+            // Monatliche Summen
+            const yearMonthKey = `${year}-${month}`;
+            if (!monthly[yearMonthKey]) monthly[yearMonthKey] = 0;
+            monthly[yearMonthKey] += amount;
+          } catch (error) {
+            console.error('Fehler beim Verarbeiten des Datums:', error);
+          }
+        });
+        
+        return { monthly, yearly };
+      }
+      
+      function renderMonthlyChart(costs, selectedYear) {
+        const chartEl = document.getElementById('monthly-chart');
+        const yearLabelEl = document.getElementById('chart-year-label');
+        
+        if (!costs || !Object.keys(costs.monthly).length) {
+          chartEl.innerHTML = '<p>Keine Kostendaten verfügbar</p>';
+          return;
+        }
+        
+        // Aktualisiere Jahr-Label
+        yearLabelEl.textContent = `(${selectedYear})`;
+        
+        // Filtern der Daten für das ausgewählte Jahr
+        const monthNames = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+        const monthlyData = [];
+        
+        for (let month = 0; month < 12; month++) {
+          const key = `${selectedYear}-${month}`;
+          monthlyData.push({
+            label: monthNames[month],
+            value: costs.monthly[key] || 0
+          });
+        }
+        
+        // Maximum finden für die Skalierung
+        const maxValue = Math.max(...monthlyData.map(d => d.value), 1);
+        
+        // Chart rendern
+        let html = '<div class="chart-bars">';
+        
+        monthlyData.forEach(data => {
+          // Höhe als Prozentsatz des maximalen Werts (max. 200px Höhe)
+          const height = data.value ? (data.value / maxValue) * 180 : 0;
+          
+          html += `
+            <div class="chart-bar" style="height:${Math.max(height, 1)}px">
+              ${data.value > 0 ? `<div class="chart-bar-value">${data.value.toFixed(0)}€</div>` : ''}
+              <div class="chart-bar-label">${data.label}</div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        chartEl.innerHTML = html;
+      }
+      
+      function renderYearlyChart(costs) {
+        const chartEl = document.getElementById('yearly-chart');
+        
+        if (!costs || !Object.keys(costs.yearly).length) {
+          chartEl.innerHTML = '<p>Keine Kostendaten verfügbar</p>';
+          return;
+        }
+        
+        // Jahre sortieren
+        const yearsData = Object.entries(costs.yearly)
+          .map(([year, value]) => ({ label: year, value }))
+          .sort((a, b) => a.label - b.label);
+        
+        // Maximum finden für die Skalierung
+        const maxValue = Math.max(...yearsData.map(d => d.value), 1);
+        
+        // Chart rendern
+        let html = '<div class="chart-bars">';
+        
+        yearsData.forEach(data => {
+          // Höhe als Prozentsatz des maximalen Werts (max. 200px Höhe)
+          const height = data.value ? (data.value / maxValue) * 180 : 0;
+          
+          html += `
+            <div class="chart-bar yearly" style="height:${Math.max(height, 1)}px">
+              ${data.value > 0 ? `<div class="chart-bar-value">${data.value.toFixed(0)}€</div>` : ''}
+              <div class="chart-bar-label">${data.label}</div>
+            </div>
+          `;
+        });
+        
+        html += '</div>';
+        chartEl.innerHTML = html;
+      }
+
+      function renderCosts(pet) {
+        const listEl = document.getElementById('costs-list');
+        const totalEl = document.getElementById('total-costs');
+        
+        totalEl.innerHTML = `<p><strong>Gesamt: ${calculateTotalCosts(pet)} €</strong></p>`;
+        
+        // Jahr für Diagramm bestimmen (aktuelles Jahr oder das letzte Jahr mit Kosten)
+        let selectedYear = new Date().getFullYear();
+        let chartData = {monthly: {}, yearly: {}};
+        
+        if (pet.costs && pet.costs.length > 0) {
+          // Kosten nach Monaten und Jahren gruppieren
+          chartData = groupCostsByMonthAndYear(pet.costs);
+          
+          // Wenn es Daten gibt, aber nicht für das aktuelle Jahr, nehme das letzte Jahr mit Daten
+          const years = Object.keys(chartData.yearly).map(Number).sort((a, b) => b - a);
+          if (years.length > 0 && !chartData.yearly[selectedYear]) {
+            selectedYear = years[0];
+          }
+        }
+        
+        // Charts rendern
+        renderMonthlyChart(chartData, selectedYear);
+        renderYearlyChart(chartData);
+        
+        // Jahr-Wechsel-Buttons konfigurieren
+        document.getElementById('prev-year').onclick = function() {
+          selectedYear--;
+          renderMonthlyChart(chartData, selectedYear);
+        };
+        
+        document.getElementById('next-year').onclick = function() {
+          selectedYear++;
+          renderMonthlyChart(chartData, selectedYear);
+        };
+        
+        // Kosten-Liste rendern
+        if (!pet.costs || pet.costs.length === 0) {
+          listEl.innerHTML = '<p>Keine Kosten vorhanden</p>';
+          return;
+        }
+        
+        let html = '<ul class="list">';
+        
+        // Nach Datum sortieren (neueste zuerst)
+        const sortedCosts = [...pet.costs].sort((a, b) => {
+          return new Date(b.date) - new Date(a.date);
+        });
+        
+        sortedCosts.forEach(cost => {
+          html += `
+            <li class="pet-item item-cost">
+              <div class="pet-item-title">
+                <div>
+                  <strong>${cost.description}</strong>
+                  <p>${formatDate(cost.date)}</p>
+                  <p><strong>${parseFloat(cost.amount).toFixed(2)} €</strong></p>
+                </div>
+                <button class="button button-delete" onclick="deleteItem('${pet.id}', 'costs', '${cost.id}')">🗑️</button>
+              </div>
+            </li>
+          `;
+        });
+        
+        html += '</ul>';
+        listEl.innerHTML = html;
+      }
+      
+      // Ereignisdaten
+      function getDueVaccinations() {
+        const today = new Date();
+        let dueVaccinations = [];
+        
+        pets.forEach(pet => {
+          if (!pet.vaccinations || !Array.isArray(pet.vaccinations)) return;
+          
+          pet.vaccinations.forEach(vaccination => {
+            if (vaccination.nextDate) {
+              try {
+                const nextDate = new Date(vaccination.nextDate);
+                if (!isNaN(nextDate.getTime()) && nextDate <= today) {
+                  dueVaccinations.push({
+                    petName: pet.name,
+                    petId: pet.id,
+                    vaccination
+                  });
+                }
+              } catch (error) {
+                console.error("Fehler beim Parsen des Datums:", error);
+              }
+            }
+          });
+        });
+        
+        return dueVaccinations;
+      }
+      
+      function getUpcomingAppointments() {
+        const today = new Date();
+        let upcomingAppointments = [];
+        
+        pets.forEach(pet => {
+          if (!pet.appointments || !Array.isArray(pet.appointments)) return;
+          
+          pet.appointments.forEach(appointment => {
+            if (!appointment.done && appointment.date) {
+              try {
+                const appointmentDate = new Date(appointment.date);
+                
+                if (!isNaN(appointmentDate.getTime())) {
+                  const diffTime = appointmentDate - today;
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  
+                  if (diffTime > 0 && diffDays <= 14) {
+                    upcomingAppointments.push({
+                      petName: pet.name,
+                      petId: pet.id,
+                      appointment,
+                      daysRemaining: diffDays
+                    });
+                  }
+                }
+              } catch (error) {
+                console.error("Fehler beim Parsen des Datums:", error);
+              }
+            }
+          });
+        });
+        
+        return upcomingAppointments.sort((a, b) => {
+          const dateA = new Date(a.appointment.date);
+          const dateB = new Date(b.appointment.date);
+          return dateA - dateB;
+        });
+      }
+      
+      // Event-Handler
+      document.getElementById('add-pet-button').addEventListener('click', function() {
+        showView('addPet');
+      });
+      
+      document.getElementById('add-pet-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nameEl = document.getElementById('pet-name');
+        const typeEl = document.getElementById('pet-type');
+        const breedEl = document.getElementById('pet-breed');
+        const birthdateEl = document.getElementById('pet-birthdate');
+        const imageEl = document.getElementById('pet-image');
+        
+        // Basisinformationen für das neue Haustier
+        const newPet = {
+          id: Date.now().toString(),
+          name: nameEl.value || 'Unbenannt',
+          type: typeEl.value || 'Hund',
+          breed: breedEl.value || '',
+          birthdate: birthdateEl.value || '',
+          appointments: [],
+          vaccinations: [],
+          costs: [],
+          image: null // Wird später gefüllt, falls ein Bild ausgewählt wurde
+        };
+        
+        // Bild verarbeiten, falls vorhanden
+        const imageFile = imageEl.files[0];
+        if (imageFile) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            // Bild auf 128x128 Pixel begrenzen
+            resizeImage(event.target.result, 128, 128, 0.7)
+              .then(resizedImage => {
+                newPet.image = resizedImage;
+                finalizePetCreation(newPet);
+              })
+              .catch(error => {
+                console.error('Fehler beim Verkleinern des Bildes:', error);
+                // Bei Fehler das Originalbild verwenden
+                newPet.image = event.target.result;
+                finalizePetCreation(newPet);
+              });
+          };
+          reader.readAsDataURL(imageFile);
+        } else {
+          finalizePetCreation(newPet);
+        }
+      });
+      
+      function finalizePetCreation(newPet) {
+        // Haustier zur Liste hinzufügen und speichern
+        pets.push(newPet);
+        savePets();
+        
+        // Formular zurücksetzen
+        document.getElementById('pet-name').value = '';
+        document.getElementById('pet-breed').value = '';
+        document.getElementById('pet-birthdate').value = '';
+        document.getElementById('pet-image').value = '';
+        document.getElementById('image-preview').innerHTML = '';
+        
+        showView('overview');
+        showMessage('Haustier wurde erfolgreich hinzugefügt');
+      }
+      
+      // Funktion zum Verkleinern der Bildgröße
+      function resizeImage(dataUrl, maxWidth, maxHeight, quality) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.src = dataUrl;
+          
+          img.onload = function() {
+            // Exakt auf 128x128 Pixel beschneiden
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Bildgröße berechnen, um es mittig zu platzieren
+            let sWidth, sHeight, sx, sy;
+            
+            if (img.width > img.height) {
+              // Breiteres Bild
+              sHeight = img.height;
+              sWidth = sHeight;
+              sx = (img.width - sWidth) / 2;
+              sy = 0;
+            } else {
+              // Höheres oder quadratisches Bild
+              sWidth = img.width;
+              sHeight = sWidth;
+              sx = 0;
+              sy = (img.height - sHeight) / 2;
+            }
+            
+            // Quadratisches Bild aus der Mitte zeichnen
+            ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, 128, 128);
+            
+            // Als Base64 mit reduzierter Qualität exportieren
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          };
+        });
+      }
+      
+      document.getElementById('add-appointment-button').addEventListener('click', function() {
+        showView('addAppointment');
+      });
+      
+      document.getElementById('add-appointment-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const titleEl = document.getElementById('appointment-title');
+        const dateEl = document.getElementById('appointment-date');
+        const notesEl = document.getElementById('appointment-notes');
+        
+        const petIndex = pets.findIndex(pet => pet.id === activePetId);
+        if (petIndex === -1) return;
+        
+        const newAppointment = {
+          id: Date.now().toString(),
+          title: titleEl.value || 'Termin',
+          date: dateEl.value || '',
+          notes: notesEl.value || '',
+          done: false
+        };
+        
+        if (!pets[petIndex].appointments) {
+          pets[petIndex].appointments = [];
+        }
+        
+        pets[petIndex].appointments.push(newAppointment);
+        savePets();
+        
+        // Formular zurücksetzen
+        titleEl.value = '';
+        dateEl.value = '';
+        notesEl.value = '';
+        
+        showView('petDetails');
+        renderAppointments(pets[petIndex]);
+        showMessage('Termin wurde erfolgreich hinzugefügt');
+      });
+      
+      document.getElementById('add-vaccination-button').addEventListener('click', function() {
+        showView('addVaccination');
+      });
+      
+      document.getElementById('add-vaccination-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const nameEl = document.getElementById('vaccination-name');
+        const dateEl = document.getElementById('vaccination-date');
+        const nextDateEl = document.getElementById('vaccination-next-date');
+        const notesEl = document.getElementById('vaccination-notes');
+        
+        const petIndex = pets.findIndex(pet => pet.id === activePetId);
+        if (petIndex === -1) return;
+        
+        const newVaccination = {
+          id: Date.now().toString(),
+          name: nameEl.value || 'Impfung',
+          date: dateEl.value || '',
+          nextDate: nextDateEl.value || '',
+          notes: notesEl.value || ''
+        };
+        
+        if (!pets[petIndex].vaccinations) {
+          pets[petIndex].vaccinations = [];
+        }
+        
+        pets[petIndex].vaccinations.push(newVaccination);
+        savePets();
+        
+        // Formular zurücksetzen
+        nameEl.value = '';
+        dateEl.value = '';
+        nextDateEl.value = '';
+        notesEl.value = '';
+        
+        showView('petDetails');
+        renderVaccinations(pets[petIndex]);
+        showMessage('Impfung wurde erfolgreich hinzugefügt');
+      });
+      
+      document.getElementById('add-cost-button').addEventListener('click', function() {
+        showView('addCost');
+      });
+      
+      document.getElementById('add-cost-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const descriptionEl = document.getElementById('cost-description');
+        const dateEl = document.getElementById('cost-date');
+        const amountEl = document.getElementById('cost-amount');
+        const categoryEl = document.getElementById('cost-category');
+        
+        const petIndex = pets.findIndex(pet => pet.id === activePetId);
+        if (petIndex === -1) return;
+        
+        const newCost = {
+          id: Date.now().toString(),
+          description: descriptionEl.value || 'Tierarztkosten',
+          date: dateEl.value || '',
+          amount: amountEl.value || 0,
+          category: categoryEl.value || 'Behandlung'
+        };
+        
+        if (!pets[petIndex].costs) {
+          pets[petIndex].costs = [];
+        }
+        
+        pets[petIndex].costs.push(newCost);
+        savePets();
+        
+        // Formular zurücksetzen
+        descriptionEl.value = '';
+        dateEl.value = '';
+        amountEl.value = '';
+        
+        showView('petDetails');
+        renderCosts(pets[petIndex]);
+        showMessage('Kosten wurden erfolgreich hinzugefügt');
+      });
+      
+      // Tabs in Haustierdetails
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          const tabName = this.getAttribute('data-tab');
+          showTab(tabName);
+        });
+      });
+      
+      // Back-Buttons
+      document.querySelectorAll('.back-button').forEach(button => {
+        button.addEventListener('click', function() {
+          // Im Tierdetail-View gehen wir zur Übersicht
+          if (petDetailsView.classList.contains('hidden') === false) {
+            showView('overview');
+          }
+          // Im Formular-View gehen wir zu Tierdetails zurück
+          else if (addAppointmentView.classList.contains('hidden') === false || 
+                  addVaccinationView.classList.contains('hidden') === false || 
+                  addCostView.classList.contains('hidden') === false) {
+            showView('petDetails');
+          }
+          // Im Tier-Hinzufügen-View gehen wir zur Übersicht zurück
+          else {
+            showView('overview');
+          }
+        });
+      });
+      
+      // Delete-Modal-Buttons
+      document.getElementById('cancel-delete').addEventListener('click', function() {
+        document.getElementById('delete-modal').classList.add('hidden');
+        petToDelete = null;
+      });
+      
+      document.getElementById('confirm-delete').addEventListener('click', function() {
+        if (!petToDelete) return;
+        
+        pets = pets.filter(pet => pet.id !== petToDelete);
+        savePets();
+        
+        if (activePetId === petToDelete) {
+          activePetId = null;
+        }
+        
+        document.getElementById('delete-modal').classList.add('hidden');
+        petToDelete = null;
+        
+        showView('overview');
+        showMessage('Haustier wurde erfolgreich gelöscht');
+      });
+      
+      // CSV/JSON Export Buttons
+      document.getElementById('export-csv-button').addEventListener('click', function() {
+        exportToCSV();
+      });
+      
+      document.getElementById('export-json-button').addEventListener('click', function() {
+        exportToJSON();
+      });
+      
+      document.getElementById('import-button').addEventListener('click', function() {
+        document.getElementById('import-file').click();
+      });
+      
+      document.getElementById('import-file').addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+          importFromJSON(e.target.files[0]);
+          e.target.value = ''; // Reset input
+        }
+      });
+      
+      // Export/Import Funktionen
+      function exportToCSV() {
+        if (pets.length === 0) {
+          showMessage('Keine Haustiere vorhanden zum Exportieren', false);
+          return;
+        }
+        
+        // CSV-Daten vorbereiten
+        let csvDatasets = {
+          haustiere: { 
+            filename: 'haustiere.csv',
+            data: 'ID;Name;Typ;Rasse;Geburtsdatum\r\n'
+          },
+          termine: { 
+            filename: 'termine.csv',
+            data: 'HaustierID;HaustierName;TerminID;Titel;Datum;Notizen;Erledigt\r\n'
+          },
+          impfungen: { 
+            filename: 'impfungen.csv',
+            data: 'HaustierID;HaustierName;ImpfungID;Name;Datum;NächsteImpfung;Notizen\r\n'
+          },
+          kosten: { 
+            filename: 'kosten.csv',
+            data: 'HaustierID;HaustierName;KostenID;Beschreibung;Datum;Betrag;Kategorie\r\n'
+          }
+        };
+        
+        // Daten zu den CSVs hinzufügen
+        pets.forEach(pet => {
+          // Haustiere
+          csvDatasets.haustiere.data += `${pet.id};${pet.name};${pet.type};${pet.breed || ''};${pet.birthdate || ''}\r\n`;
+          
+          // Termine
+          if (pet.appointments && pet.appointments.length > 0) {
+            pet.appointments.forEach(appt => {
+              csvDatasets.termine.data += `${pet.id};${pet.name};${appt.id};${appt.title};${appt.date};${appt.notes || ''};${appt.done ? 'Ja' : 'Nein'}\r\n`;
+            });
+          }
+          
+          // Impfungen
+          if (pet.vaccinations && pet.vaccinations.length > 0) {
+            pet.vaccinations.forEach(vacc => {
+              csvDatasets.impfungen.data += `${pet.id};${pet.name};${vacc.id};${vacc.name};${vacc.date};${vacc.nextDate || ''};${vacc.notes || ''}\r\n`;
+            });
+          }
+          
+          // Kosten
+          if (pet.costs && pet.costs.length > 0) {
+            pet.costs.forEach(cost => {
+              csvDatasets.kosten.data += `${pet.id};${pet.name};${cost.id};${cost.description};${cost.date};${cost.amount};${cost.category}\r\n`;
+            });
+          }
+        });
+        
+        // CSV Speicherortdialog anzeigen
+        showExportDialog(csvDatasets);
+      }
+      
+      function showExportDialog(csvDatasets) {
+        // Dialog erstellen
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.display = 'flex';
+        
+        let dialogContent = `
+          <div class="modal-content" style="max-width: 600px;">
+            <h3>CSV-Export</h3>
+            <p>Wählen Sie aus, welche CSV-Dateien Sie exportieren möchten:</p>
+            <div style="margin: 20px 0;">
+        `;
+        
+        // Checkboxen für jede CSV-Datei
+        Object.keys(csvDatasets).forEach(key => {
+          dialogContent += `
+            <div style="margin-bottom: 10px;">
+              <label>
+                <input type="checkbox" class="csv-checkbox" data-key="${key}" checked> 
+                ${csvDatasets[key].filename} exportieren
+              </label>
+            </div>
+          `;
+        });
+        
+        // Option für einen Ordner
+        dialogContent += `
+            <div style="margin: 15px 0;">
+              <label>
+                <input type="checkbox" id="create-folder"> In einem Ordner speichern
+              </label>
+              <input type="text" id="folder-name" class="form-control" 
+                     value="haustier_manager_export" style="margin-top: 5px;" 
+                     placeholder="Ordnername">
+            </div>
+            </div>
+            <div class="modal-footer">
+              <button id="cancel-export" class="button button-secondary">Abbrechen</button>
+              <button id="confirm-export" class="button button-green">Exportieren</button>
+            </div>
+          </div>
+        `;
+        
+        modal.innerHTML = dialogContent;
+        document.body.appendChild(modal);
+        
+        // Event-Listener
+        document.getElementById('cancel-export').addEventListener('click', function() {
+          document.body.removeChild(modal);
+        });
+        
+        document.getElementById('confirm-export').addEventListener('click', function() {
+          // Ausgewählte CSVs bestimmen
+          const selectedCSVs = {};
+          document.querySelectorAll('.csv-checkbox:checked').forEach(checkbox => {
+            const key = checkbox.getAttribute('data-key');
+            selectedCSVs[key] = csvDatasets[key];
+          });
+          
+          // In Ordner speichern?
+          const createFolder = document.getElementById('create-folder').checked;
+          const folderName = document.getElementById('folder-name').value.trim() || 'haustier_manager_export';
+          
+          // CSVs herunterladen
+          if (Object.keys(selectedCSVs).length > 0) {
+            downloadSelectedCSVs(selectedCSVs, createFolder, folderName);
+          } else {
+            showMessage('Keine CSV-Dateien zum Exportieren ausgewählt', false);
+          }
+          
+          document.body.removeChild(modal);
+        });
+      }
+      
+      function downloadSelectedCSVs(selectedCSVs, createFolder, folderName) {
+        // Unterstützung für ZIP-Download prüfen
+        const supportsZIP = typeof JSZip !== 'undefined';
+        
+        // In ZIP-Datei packen, wenn Ordner erstellt werden soll
+        if (createFolder && supportsZIP) {
+          const zip = new JSZip();
+          
+          // Dateien zum ZIP hinzufügen
+          Object.values(selectedCSVs).forEach(csv => {
+            zip.file(csv.filename, csv.data);
+          });
+          
+          // ZIP generieren und herunterladen
+          zip.generateAsync({type: 'blob'}).then(function(content) {
+            const url = URL.createObjectURL(content);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${folderName}.zip`;
+            link.click();
+            URL.revokeObjectURL(url);
+          });
+          
+          showMessage('CSV-Dateien wurden als ZIP exportiert');
+        } else {
+          // Einzelne Dateien herunterladen
+          Object.values(selectedCSVs).forEach(csv => {
+            downloadCSV(csv.filename, csv.data);
+          });
+          
+          showMessage('CSV-Dateien wurden erfolgreich exportiert');
+        }
+      }
+      
+      function downloadCSV(filename, content) {
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+      
+      function exportToJSON() {
+        if (pets.length === 0) {
+          showMessage('Keine Haustiere vorhanden zum Exportieren', false);
+          return;
+        }
+        
+        const json = JSON.stringify(pets, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'haustier_manager_backup.json');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showMessage('Backup wurde erfolgreich erstellt');
+      }
+      
+      function importFromJSON(file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          try {
+            const importedPets = JSON.parse(e.target.result);
+            
+            if (Array.isArray(importedPets)) {
+              pets = importedPets;
+              savePets();
+              renderOverview();
+              showMessage('Backup wurde erfolgreich importiert');
+            } else {
+              showMessage('Die Datei enthält kein gültiges Backup', false);
+            }
+          } catch (error) {
+            console.error('Fehler beim Importieren:', error);
+            showMessage('Fehler beim Importieren der Datei', false);
+          }
+        };
+        
+        reader.readAsText(file);
+      }
+      
+      // Globale Funktionen
+      window.petCardClicked = function(petId) {
+        activePetId = petId;
+        renderPetDetails();
+        showView('petDetails');
+      };
+      
+      window.showPetDetails = window.petCardClicked;
+      
+      window.deletePetClicked = function(event, petId) {
+        event.stopPropagation();
+        
+        const pet = pets.find(p => p.id === petId);
+        if (!pet) return;
+        
+        petToDelete = petId;
+        document.getElementById('delete-confirmation-text').textContent = 
+          `Möchtest du "${pet.name}" wirklich löschen? Dies kann nicht rückgängig gemacht werden.`;
+        document.getElementById('delete-modal').classList.remove('hidden');
+      };
+      
+      window.toggleAppointment = function(petId, appointmentId) {
+        const petIndex = pets.findIndex(pet => pet.id === petId);
+        if (petIndex === -1) return;
+        
+        const pet = pets[petIndex];
+        const appointmentIndex = pet.appointments.findIndex(a => a.id === appointmentId);
+        if (appointmentIndex === -1) return;
+        
+        pet.appointments[appointmentIndex].done = !pet.appointments[appointmentIndex].done;
+        pets[petIndex] = pet;
+        
+        savePets();
+        renderAppointments(pet);
+      };
+      
+      window.deleteItem = function(petId, itemType, itemId) {
+        const petIndex = pets.findIndex(pet => pet.id === petId);
+        if (petIndex === -1) return;
+        
+        const pet = pets[petIndex];
+        pet[itemType] = pet[itemType].filter(item => item.id !== itemId);
+        pets[petIndex] = pet;
+        
+        savePets();
+        
+        if (itemType === 'appointments') renderAppointments(pet);
+        if (itemType === 'vaccinations') renderVaccinations(pet);
+        if (itemType === 'costs') renderCosts(pet);
+        
+        showMessage(`Eintrag wurde gelöscht`);
+      };
+      
+      // App initialisieren
+      loadPets();
+      renderOverview();
+      
+      // Speichernutzung beim Start prüfen
+      if (pets.length > 0) {
+        updateStorageInfo(JSON.stringify(pets).length);
+      } else {
+        updateStorageInfo(0);
+      }
+    });
+  </script>
+</body>
+</html>
